@@ -14,7 +14,6 @@ class ViewController: UIViewController, WebSocketDelegate, UITextFieldDelegate {
 //    var arrowLabel:arrowView!
     @IBOutlet weak var arrowLabel: UIView!
     var socket: WebSocket?
-
     @IBOutlet var tapGest: UITapGestureRecognizer!
     var motionManager = CMMotionManager()
     var ref: Double = 0
@@ -52,24 +51,42 @@ class ViewController: UIViewController, WebSocketDelegate, UITextFieldDelegate {
     
     
     override func viewDidAppear(_ animated: Bool) {
-        motionManager.deviceMotionUpdateInterval = 1
+        motionManager.deviceMotionUpdateInterval = 0.01
+        var toggle:BooleanLiteralType = true
         motionManager.startDeviceMotionUpdates(using: .xMagneticNorthZVertical, to: .main, withHandler: { (motionData: CMDeviceMotion?, error: Error?) in
             if let motion = motionData {
+                
                 self.motionReading = motion.heading
 //                print("heading:", self.motionReading)
                 var refHeading = motion.heading + 360 - self.ref
                 refHeading.formTruncatingRemainder(dividingBy: 360.00)
                 print("ref heading:", refHeading)
-                let postReq:Int = Int(floor(refHeading/90))
-                print("post request", postReq)
-                self.sendDirectionMessage(theInt: postReq)
+                let directions:Int = Int(floor(refHeading/45))
+                print("8D", directions)
+                //
+                
+                if toggle == true {
+                    var postReqFloor:Int = Int(floor(Double(Double(directions)/2)))
+                    postReqFloor %= 4
+                self.sendDirectionMessage(theInt: postReqFloor)
+                print(toggle,"postReq", postReqFloor)
+                toggle = false
+                } else{
+//                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                var postReqCeil:Int = Int(ceil(Double(Double(directions)/2)))
+                    postReqCeil %= 4
+
+                    self.sendDirectionMessage(theInt: postReqCeil)
+                     print(toggle,"postReq", postReqCeil)
+                    toggle = true
+//                    }
+                }
             }
         })
         
-        
     }
     @IBAction func tap(_ sender: UIGestureRecognizer) {
-        ref = motionReading - 45.00
+        ref = motionReading - 22.50
         print("set ref as ", ref)
     }
     
